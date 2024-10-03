@@ -26,7 +26,7 @@ def combinations_generator(elements, current_combination, length, result):
 ####################################################################
 combinations_len = 3
 support_threshold = 0.25
-min_confidence = 0.8
+min_confidence = 0.7
 script_dir = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.join(script_dir, 'itemsets_test.dat')
 ####################################################################
