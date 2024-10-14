@@ -259,4 +259,4 @@ print(f"Time to finish {end_time - start_time}s")
 
 # TODO calculate only with lower triangle in distance matrix
 # TODO - dont update so much in single linkage? idk
-
+# TODO cosine similarity - larger value means more similar!
