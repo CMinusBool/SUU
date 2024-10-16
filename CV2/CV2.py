@@ -8,8 +8,8 @@ import time
 from joblib import Parallel, delayed
 import matplotlib.pyplot as plt
 from itertools import cycle
-from scipy.cluster.hierarchy import dendrogram
-
+from scipy.cluster.hierarchy import linkage, fcluster
+from scipy.spatial.distance import pdist
 
 class DistanceMetric(Enum):
     MANHATTAN = 'manhattan'
@@ -78,14 +78,16 @@ def euclidean_dis(data):
             distances[y][i] = distance
     return distances
 
-
+# cosine distance - <0, 2>
 def cosine_dis(data):
     distances = [[0] * len(data) for _ in range(len(data))]
 
     for i in range(len(data)):
         for y in range(i, len(data)):
             # calculates each distance only once and puts it to both row and col
-            distance = np.dot(data[i], data[y]) / (np.linalg.norm(data[i]) * np.linalg.norm(data[y]))
+            distance = np.dot(data[i], data[y]) / (np.linalg.norm(data[i]) * np.linalg.norm(data[y])+1e-9) # +1e-9 to avoid division by 0
+            # round to 7 decimal places and convert from cosine similarity to cosine distance
+            distance = 1 - round(distance, 7)
             distances[i][y] = distance
             distances[y][i] = distance
     return distances
@@ -106,8 +108,6 @@ def complete_link_group(distances, elem1, elem2):
         distances[i][elem1] = 0 # remove old group
         distances[i][elem2] = maximum
     return distances
-
-#TODO single link
 
 def complete_link(distances):
     min_distances = []
@@ -244,19 +244,31 @@ with open(file_path, 'r') as file:
         line = [float(x) for x in line.strip().split(';')]
         data.append(line)
 
-data = min_max_normalize(data)
-linkage_matrix, groups = hierarchical_clustering(data, target=target, linkage=LinkageType.SINGLE,
-                                                 distance_metric=DistanceMetric.EUCLIDEAN)
-print("Calculations finished")
+data_min_max = min_max_normalize(data)
+linkage_matrix, groups = hierarchical_clustering(data_min_max, target=target, linkage=LinkageType.COMPLETE,
+                                                 distance_metric=DistanceMetric.COSINE)
 
 if target == 1:
     draw_dendrogram(linkage_matrix)
 else:
-    plot_clusters(data, groups, f"Clusters from file: '{file_name}'")
+    plot_clusters(data, groups, f"Clusters from file: '{file_name}' - min-max normalized")
 
+# standardize data. Mean 0, variance 1
+data_standardized = (data - np.mean(data, axis=0)) / np.std(data, axis=0)
+linkage_matrix, groups = hierarchical_clustering(data_standardized, target=target, linkage=LinkageType.COMPLETE,
+                                                 distance_metric=DistanceMetric.COSINE)
+
+if target == 1:
+    draw_dendrogram(linkage_matrix)
+else:
+    plot_clusters(data, groups, f"Clusters from file: '{file_name}' - standardized")
+
+print("Calculations finished")
 end_time = time.time()
 print(f"Time to finish {end_time - start_time}s")
 
-# TODO calculate only with lower triangle in distance matrix
-# TODO - dont update so much in single linkage? idk
-# TODO cosine similarity - larger value means more similar!
+# Standardized data has better results than min-max normalized data
+# in standardization there are also values below 0, which are not present in min-max normalization
+# so the cosine distance can get values from <0, 2> and not only <0, 1> as in min-max normalization
+
+
