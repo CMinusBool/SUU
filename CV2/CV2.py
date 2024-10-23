@@ -8,8 +8,6 @@ import time
 from joblib import Parallel, delayed
 import matplotlib.pyplot as plt
 from itertools import cycle
-from scipy.cluster.hierarchy import linkage, fcluster
-from scipy.spatial.distance import pdist
 
 class DistanceMetric(Enum):
     MANHATTAN = 'manhattan'
