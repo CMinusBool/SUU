@@ -98,7 +98,7 @@ def train_decision_tree(dataset, max_depth=-1):
     dataset = dataset.to_numpy()
 
     # recursive function to build the tree
-    tree = find_recursively_best_splits(dataset, max_depth, 0)
+    tree = find_recursively_best_splits(dataset, max_depth, 1)
 
     return tree
 
@@ -221,7 +221,7 @@ df = pd.read_csv('data_classification/titanic_preprocessed.csv', delimiter=',')
 X = df.drop(columns=df.columns[1])
 y = df[df.columns[1]]
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=13)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 Xy_train = pd.concat([X_train, y_train], axis=1)
 Xy_test = pd.concat([X_test, y_test], axis=1)
@@ -251,6 +251,7 @@ for max_depth in range(1, 16):
     print(f"Max depth: {max_depth}")
     # train decision tree
     tree = train_decision_tree(Xy_train, max_depth)
+
     # run decision tree
     predictions = run_decision_tree(tree, Xy_test)
 
