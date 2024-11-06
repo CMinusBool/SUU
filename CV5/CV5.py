@@ -172,10 +172,9 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 Xy_train = pd.concat([X_train, y_train], axis=1)
 Xy_test = pd.concat([X_test, y_test], axis=1)
 
-print(X_train.shape, X_test.shape)
 
 # test code
-print("training decision tree")
+print("training decision tree for iris dataset")
 tree = train_decision_tree(Xy_train)
 # Print the decision tree
 #print_decision_tree(tree)
@@ -190,7 +189,7 @@ for i in range(len(predictions)):
         correct += 1
 
 accuracy = correct / len(predictions)
-print(f"Accuracy from my decision tree: {accuracy}")
+print(f"Accuracy from decision tree: {accuracy}")
 
 # Compare with sklearn
 
@@ -226,9 +225,39 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 Xy_train = pd.concat([X_train, y_train], axis=1)
 Xy_test = pd.concat([X_test, y_test], axis=1)
 
-print(X_train.shape, X_test.shape)
 
 accuracies = []
+train_accuracies = []
+
+for max_depth in range(1, 16):
+    print(f"Max depth: {max_depth}")
+    # train decision tree
+    tree = train_decision_tree(Xy_train, max_depth)
+
+    # run decision tree
+    predictions = run_decision_tree(tree, Xy_test)
+
+    # Calculate accuracy
+    correct = 0
+    for i in range(len(predictions)):
+        if predictions[i] == y_test.iloc[i]:
+            correct += 1
+
+    accuracy = correct / len(predictions)
+    print(f"Accuracy from my decision tree: {accuracy}")
+
+    #acuracy in training
+    training_predictions = run_decision_tree(tree, Xy_train)
+    correct = 0
+    for i in range(len(training_predictions)):
+        if training_predictions[i] == y_train.iloc[i]:
+            correct += 1
+
+    training_accuracy = correct / len(training_predictions)
+    print(f"Accuracy from my decision tree in training: {training_accuracy}")
+
+    accuracies.append(accuracy)
+    train_accuracies.append(training_accuracy)
 
 # without max depth
 print(f"Max depth: -1")
@@ -247,36 +276,38 @@ accuracy = correct / len(predictions)
 print(f"Accuracy from my decision tree: {accuracy}")
 accuracies.append(accuracy)
 
-for max_depth in range(1, 16):
-    print(f"Max depth: {max_depth}")
-    # train decision tree
-    tree = train_decision_tree(Xy_train, max_depth)
+#acuracy in training
+training_predictions = run_decision_tree(tree, Xy_train)
+correct = 0
+for i in range(len(training_predictions)):
+    if training_predictions[i] == y_train.iloc[i]:
+        correct += 1
 
-    # run decision tree
-    predictions = run_decision_tree(tree, Xy_test)
+training_accuracy = correct / len(training_predictions)
+print(f"Accuracy from my decision tree in training: {training_accuracy}")
+train_accuracies.append(training_accuracy)
 
-    # Calculate accuracy
-    correct = 0
-    for i in range(len(predictions)):
-        if predictions[i] == y_test.iloc[i]:
-            correct += 1
-
-    accuracy = correct / len(predictions)
-    print(f"Accuracy from my decision tree: {accuracy}")
-    accuracies.append(accuracy)
-
-
-
-plt.plot(range(0, 16), accuracies)
+plt.plot(range(1, 17), accuracies)
+plt.plot(range(1, 17), train_accuracies)
 plt.xlabel('Max depth')
 plt.ylabel('Accuracy')
 plt.title('Accuracy vs Max depth')
-plt.xticks(range(0, 16))
+xticks = list(range(1, 17))
+xtick_labels = [str(x) for x in xticks]
+xtick_labels[-1] = 'inf'
+plt.xticks(xticks, xtick_labels)
+
+plt.legend(['Test', 'Train'])
 plt.show()
 
-# in depth 1 there is underfiting - The tree is too simple
-# in depth 2 the accuracy is the same as in depth 3 - best depth
-# in depths higher than 3 the accuracy is lower - overfitting
+# conclusions
+# accuracy in training keeps increasing with depth up to 100% accuracy
+# what exact depth is the best changes even on same dataset depending on test size and
+# randomness of the split
+# for 20/80 split and random state 42
+# in depth 1 and 2 there is underfiting - The tree is too simple
+# in depth 3 the accuracy is the same as in depth 3 - best depth
+# in depths higher than 4 the accuracy is lower - overfitting
 
 
 
